@@ -1,0 +1,67 @@
+type Welcome9 struct {
+	IPSisterCam1       string      `json:"ip_sister_cam1"`      
+	IPSisterCam2       string      `json:"ip_sister_cam2"`      
+	IPServer           string      `json:"ip_server"`           
+	PortServer         string      `json:"port_server"`         
+	EventTransitionURI string      `json:"event_transition_uri"`
+	HeartbeatURI       string      `json:"heartbeat_uri"`       
+	Bays               []Bay       `json:"bays"`                
+	LEDProfiles        LEDProfiles `json:"led_profiles"`        
+}
+
+type Bay struct {
+	BayID      string    `json:"bay_id"`      
+	BayIDLocal string    `json:"bay_id_local"`
+	Polygon    []Polygon `json:"polygon"`     
+}
+
+type Polygon struct {
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
+}
+
+type LEDProfiles struct {
+	Custom   Custom   `json:"custom"`   
+	ErrorCFG ErrorCFG `json:"error_cfg"`
+	Error    Custom   `json:"error"`    
+	Startup  Custom   `json:"startup"`  
+	Vacant   Custom   `json:"vacant"`   
+	Occupied Custom   `json:"occupied"` 
+}
+
+type Custom struct {
+	LEDValue LEDValue `json:"led_value"`
+	Bays     Bays     `json:"bays"`     
+}
+
+type Bays struct {
+	The340100 The340100 `json:"340100"`
+}
+
+type The340100 struct {
+	Priority int64    `json:"priority"` 
+	LEDValue LEDValue `json:"led_value"`
+}
+
+type LEDValue struct {
+	Colors       string           `json:"colors"`        
+	LEDPattern   LEDPatternEnum   `json:"led_pattern"`   
+	LEDPatternMS LEDPatternMSEnum `json:"led_pattern_ms"`
+}
+
+type ErrorCFG struct {
+	LEDValue LEDValue `json:"led_value"`
+}
+
+type LEDPatternEnum string
+const (
+	LEDPattern LEDPatternEnum = ""
+	The01 LEDPatternEnum = "01"
+)
+
+type LEDPatternMSEnum string
+const (
+	LEDPatternMS LEDPatternMSEnum = ""
+	The10001000 LEDPatternMSEnum = "1000,1000"
+	The5000200 LEDPatternMSEnum = "5000,200"
+)
