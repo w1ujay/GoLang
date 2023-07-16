@@ -11,11 +11,12 @@ func (app *application) routes() http.Handler {
 	mux := chi.NewRouter()
 
 	// register middleware
-
 	mux.Use(middleware.Recoverer)
+	mux.Use(app.addIPToContext)
 
 	// register routes
 	mux.Get("/", app.Home)
+	mux.Post("/login", app.Login)
 
 	// static assetts
 	fileServer := http.FileServer(http.Dir("./static/"))
