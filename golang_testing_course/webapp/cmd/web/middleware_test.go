@@ -63,8 +63,6 @@ func Test_application_addIPToContext(t *testing.T) {
 
 }
 func Test_application_ipFromContext(t *testing.T) {
-	// Create an app variable of type application
-	var app application
 
 	// get a context
 	ctx := context.Background()
