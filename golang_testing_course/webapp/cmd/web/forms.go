@@ -34,10 +34,11 @@ func NewForm(data url.Values) *Form {
 
 func (f *Form) Has(field string) bool {
 	x := f.Data.Get(field)
-	if x == "" {
-		return false
-	}
-	return true
+	return x != ""
+	// if x == "" {
+	// 	return false
+	// }
+	// return true
 }
 
 func (f *Form) Required(fields ...string) {
