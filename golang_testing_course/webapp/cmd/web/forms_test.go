@@ -67,7 +67,7 @@ func TestForm_ErrorGet(t *testing.T) {
 		t.Error("Should have an error returned from GET, but do not")
 	}
 
-	s = form.Errors.Get("whatnot")
+	s = form.Errors.Get("whatnots")
 	if len(s) != 0 {
 		t.Error("Should not have an error, but got one")
 	}
