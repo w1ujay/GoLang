@@ -94,6 +94,8 @@ func TestApp_renderWithBadTemplate(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error from bad template, but did not get one")
 	}
+
+	pathToTemplates = "./../../templates/"
 }
 
 func addContextAndSessionToRequest(req *http.Request, app application) *http.Request {
