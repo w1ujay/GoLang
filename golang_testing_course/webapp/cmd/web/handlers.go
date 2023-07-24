@@ -87,7 +87,11 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println(password, user.FirstName)
+	if !app.authenticate(r, user, password) {
+		app.Session.Put(r.Context(), "error", "Invalid Login!")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
 
 	// authenticate the user
 	//if not authenticated then redirect with error
@@ -101,4 +105,14 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 	app.Session.Put(r.Context(), "flash", "Successfully logged in!")
 	http.Redirect(w, r, "/user/profile", http.StatusSeeOther)
 
+}
+
+func (app *application) authenticate(r *http.Request, user *data.User, password string) bool {
+	if valid, err := user.PasswordMatches(password); err != nil || !valid {
+		return false
+	}
+
+	app.Session.Put(r.Context(), "user", user)
+
+	return true
 }
