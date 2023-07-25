@@ -1,6 +1,5 @@
 golang_testing_course/webapp/cmd/web/coverage.out
 golang_testing_course/webapp/postgres-data/*
 postgres-data/
-
-golang_testing_course/webapp/postgres-data/base/13757/pg_internal.init
-golang_testing_course/webapp/postgres-data/base/13757/pg_internal.init
+golang_testing_course/webapp/postgres-data/global/pg_control
+golang_testing_course/webapp/postgres-data/pg_wal/000000010000000000000001
