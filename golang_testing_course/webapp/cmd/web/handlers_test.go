@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -12,12 +13,15 @@ import (
 
 func Test_application_handlers(t *testing.T) {
 	var theTests = []struct {
-		name               string
-		url                string
-		expectedStatusCode int
+		name                    string
+		url                     string
+		expectedStatusCode      int
+		expectedURL             string
+		expectedFirstStatusCode int
 	}{
-		{"home", "/", http.StatusOK},
-		{"404", "/fish", http.StatusNotFound},
+		{"home", "/", http.StatusOK, "/", http.StatusOK},
+		{"404", "/fish", http.StatusNotFound, "/fish", http.StatusNotFound},
+		{"profile", "/user/profile", http.StatusOK, "/", http.StatusTemporaryRedirect},
 	}
 
 	routes := app.routes()
@@ -26,15 +30,36 @@ func Test_application_handlers(t *testing.T) {
 	ts := httptest.NewTLSServer(routes)
 	defer ts.Close()
 
-	// range through the tests
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	client := &http.Client{
+		Transport: tr,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
+
+	// range through test data
 	for _, e := range theTests {
 		resp, err := ts.Client().Get(ts.URL + e.url)
 		if err != nil {
 			t.Log(err)
 			t.Fatal(err)
 		}
+
 		if resp.StatusCode != e.expectedStatusCode {
 			t.Errorf("for %s: expected status %d, but got %d", e.name, e.expectedStatusCode, resp.StatusCode)
+		}
+
+		if resp.Request.URL.Path != e.expectedURL {
+			t.Errorf("%s: expected final url of %s but got %s", e.name, e.expectedURL, resp.Request.URL.Path)
+		}
+
+		resp2, _ := client.Get(ts.URL + e.url)
+		if resp2.StatusCode != e.expectedFirstStatusCode {
+			t.Errorf("%s: expected first returned status code to be %d but got %d", e.name, e.expectedFirstStatusCode, resp2.StatusCode)
 		}
 	}
 }
@@ -78,13 +103,8 @@ func TestAppHome(t *testing.T) {
 	}
 }
 
-func getCtx(req *http.Request) context.Context {
-	ctx := context.WithValue(req.Context(), contextUserKey, "unknown")
-	return ctx
-}
-
 func TestApp_renderWithBadTemplate(t *testing.T) {
-	// set templatepath
+	// set pathToTemplates to a location with a bad template
 	pathToTemplates = "./testdata/"
 
 	req, _ := http.NewRequest("GET", "/", nil)
@@ -93,10 +113,15 @@ func TestApp_renderWithBadTemplate(t *testing.T) {
 
 	err := app.render(rr, req, "bad.page.gohtml", &TemplateData{})
 	if err == nil {
-		t.Error("Expected error from bad template, but did not get one")
+		t.Error("expected error from bad template, but did not get one")
 	}
 
 	pathToTemplates = "./../../templates/"
+}
+
+func getCtx(req *http.Request) context.Context {
+	ctx := context.WithValue(req.Context(), contextUserKey, "unknown")
+	return ctx
 }
 
 func addContextAndSessionToRequest(req *http.Request, app application) *http.Request {
@@ -105,8 +130,8 @@ func addContextAndSessionToRequest(req *http.Request, app application) *http.Req
 	ctx, _ := app.Session.Load(req.Context(), req.Header.Get("X-Session"))
 
 	return req.WithContext(ctx)
-
 }
+
 func Test_app_Login(t *testing.T) {
 	var tests = []struct {
 		name               string
@@ -133,19 +158,19 @@ func Test_app_Login(t *testing.T) {
 			expectedLoc:        "/",
 		},
 		{
-			name: "bad credentials",
+			name: "user not found",
 			postedData: url.Values{
-				"email":    {"admin@example.com"},
+				"email":    {"you@there.com"},
 				"password": {"password"},
 			},
 			expectedStatusCode: http.StatusSeeOther,
 			expectedLoc:        "/",
 		},
 		{
-			name: "user not found",
+			name: "bad credentials",
 			postedData: url.Values{
-				"email":    {"admin2@example.com"},
-				"password": {"secret"},
+				"email":    {"admin@example.com"},
+				"password": {"password"},
 			},
 			expectedStatusCode: http.StatusSeeOther,
 			expectedLoc:        "/",
