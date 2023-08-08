@@ -24,6 +24,7 @@ func (app *application) Home(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) Profile(w http.ResponseWriter, r *http.Request) {
+
 	_ = app.render(w, r, "profile.page.gohtml", &TemplateData{})
 }
 
@@ -36,10 +37,10 @@ type TemplateData struct {
 }
 
 func (app *application) render(w http.ResponseWriter, r *http.Request, t string, td *TemplateData) error {
-	// Parse the template from disk
+	// parse the template from disk.
 	parsedTemplate, err := template.ParseFiles(path.Join(pathToTemplates, t), path.Join(pathToTemplates, "base.layout.gohtml"))
 	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		http.Error(w, "bad request", http.StatusBadRequest)
 		return err
 	}
 
@@ -48,7 +49,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, t string,
 	td.Error = app.Session.PopString(r.Context(), "error")
 	td.Flash = app.Session.PopString(r.Context(), "flash")
 
-	// execute the template pass data
+	// execute the template, passing it data, if any
 	err = parsedTemplate.Execute(w, td)
 	if err != nil {
 		return err
@@ -65,13 +66,13 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate data
+	// validate data
 	form := NewForm(r.PostForm)
 	form.Required("email", "password")
 
 	if !form.Valid() {
-		// redirect to login page with error
-		app.Session.Put(r.Context(), "error", "invalid login credentials")
+		// redirect to the login page with error message
+		app.Session.Put(r.Context(), "error", "Invalid login credentials")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
@@ -81,30 +82,24 @@ func (app *application) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := app.DB.GetUserByEmail(email)
 	if err != nil {
-		// redirect to login page with error
-		app.Session.Put(r.Context(), "error", "invalid login!")
+		// redirect to the login page with error message
+		app.Session.Put(r.Context(), "error", "Invalid login!")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
 	if !app.authenticate(r, user, password) {
-		app.Session.Put(r.Context(), "error", "Invalid Login!")
+		app.Session.Put(r.Context(), "error", "Invalid login!")
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	// authenticate the user
-	//if not authenticated then redirect with error
-
 	// prevent fixation attack
 	_ = app.Session.RenewToken(r.Context())
-
-	// store success message
 
 	// redirect to some other page
 	app.Session.Put(r.Context(), "flash", "Successfully logged in!")
 	http.Redirect(w, r, "/user/profile", http.StatusSeeOther)
-
 }
 
 func (app *application) authenticate(r *http.Request, user *data.User, password string) bool {
@@ -113,6 +108,5 @@ func (app *application) authenticate(r *http.Request, user *data.User, password 
 	}
 
 	app.Session.Put(r.Context(), "user", user)
-
 	return true
 }

@@ -6,7 +6,7 @@ import (
 )
 
 type DatabaseRepo interface {
-	Conection() *sql.DB
+	Connection() *sql.DB
 	AllUsers() ([]*data.User, error)
 	GetUser(id int) (*data.User, error)
 	GetUserByEmail(email string) (*data.User, error)

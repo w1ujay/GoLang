@@ -3,10 +3,11 @@ package db
 import (
 	"context"
 	"database/sql"
-	"webapp/pkg/data"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"time"
+	"webapp/pkg/data"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 const dbTimeout = time.Second * 3
